@@ -11,6 +11,8 @@ import {
   formatXMR,
 } from "../utils/formatters";
 
+const explorerUrl = (import.meta.env.VITE_EXPLORER_URL ?? "").replace(/\/+$/, "");
+
 export default function Blocks() {
   const blocks = usePolling(getPoolBlocks);
   const pool = usePolling(getPoolStats);
@@ -92,12 +94,34 @@ export default function Blocks() {
                 {blocks.data.map((block) => (
                   <tr key={block.hash}>
                     <td>
-                      <span className="highlight">
-                        {formatNumber(block.height)}
-                      </span>
+                      {explorerUrl ? (
+                        <a
+                          className="explorer-link highlight"
+                          href={`${explorerUrl}/block/${block.height}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {formatNumber(block.height)}
+                        </a>
+                      ) : (
+                        <span className="highlight">
+                          {formatNumber(block.height)}
+                        </span>
+                      )}
                     </td>
                     <td>
-                      <code className="mono">{shortenHash(block.hash, 10)}</code>
+                      {explorerUrl ? (
+                        <a
+                          className="explorer-link mono"
+                          href={`${explorerUrl}/block/${block.hash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {shortenHash(block.hash, 10)}
+                        </a>
+                      ) : (
+                        <code className="mono">{shortenHash(block.hash, 10)}</code>
+                      )}
                     </td>
                     <td className="text-right">
                       {formatDifficulty(block.difficulty)}

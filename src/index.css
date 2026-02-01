@@ -354,6 +354,28 @@ body {
   background: rgba(63, 185, 80, 0.12);
 }
 
+/* ---- Explorer Links ---- */
+
+.explorer-link {
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.explorer-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.explorer-link.highlight {
+  color: var(--accent);
+}
+
+.explorer-link.mono {
+  font-family: var(--font-mono);
+  font-size: 0.825rem;
+  color: var(--blue);
+}
+
 /* ---- Code / Mono ---- */
 
 .mono {
