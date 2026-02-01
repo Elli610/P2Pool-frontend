@@ -12,6 +12,7 @@ export default function Header() {
           Dashboard
         </NavLink>
         <NavLink to="/miners">Miners</NavLink>
+        <NavLink to="/payouts">Payouts</NavLink>
         <NavLink to="/blocks">Blocks</NavLink>
         <NavLink to="/network">Network</NavLink>
         <NavLink to="/connections">Connections</NavLink>

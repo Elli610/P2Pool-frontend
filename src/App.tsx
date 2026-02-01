@@ -5,6 +5,7 @@ import Miners from "./components/Miners";
 import Blocks from "./components/Blocks";
 import Network from "./components/Network";
 import Connections from "./components/Connections";
+import Payouts from "./components/Payouts";
 import GettingStarted from "./components/GettingStarted";
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/miners" element={<Miners />} />
+            <Route path="/payouts" element={<Payouts />} />
             <Route path="/blocks" element={<Blocks />} />
             <Route path="/network" element={<Network />} />
             <Route path="/connections" element={<Connections />} />

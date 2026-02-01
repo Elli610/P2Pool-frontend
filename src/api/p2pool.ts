@@ -4,9 +4,11 @@ import type {
   PoolBlock,
   LocalStratum,
   LocalP2P,
+  Payout,
 } from "./types";
 
 const BASE_URL = import.meta.env.VITE_P2POOL_API_URL ?? "";
+const OBSERVER_URL = (import.meta.env.VITE_OBSERVER_URL ?? "").replace(/\/+$/, "");
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`);
@@ -34,4 +36,13 @@ export async function getLocalStratum(): Promise<LocalStratum> {
 
 export async function getLocalP2P(): Promise<LocalP2P> {
   return fetchJson<LocalP2P>("/api/local/p2p");
+}
+
+export async function getPayouts(address: string, limit = 50): Promise<Payout[]> {
+  if (!OBSERVER_URL || !address) return [];
+  const res = await fetch(`${OBSERVER_URL}/api/payouts/${address}?search_limit=${limit}`);
+  if (!res.ok) {
+    throw new Error(`Observer API error ${res.status}`);
+  }
+  return res.json();
 }

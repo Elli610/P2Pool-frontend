@@ -96,6 +96,23 @@ export interface StatsMod {
   };
 }
 
+// P2Pool Observer API types
+
+export interface Payout {
+  miner: number;
+  template_id: string;
+  side_height: number;
+  main_id: string;
+  main_height: number;
+  timestamp: number;
+  coinbase_id: string;
+  coinbase_reward: number;
+  coinbase_private_key: string;
+  coinbase_output_index: number;
+  global_output_index: number;
+  including_height: number;
+}
+
 // Parse worker from comma-separated string:
 // "IP:PORT,UPTIME_SECS,DIFFICULTY,HASHRATE,WORKER_NAME"
 export function parseWorker(raw: string): StratumWorker {
