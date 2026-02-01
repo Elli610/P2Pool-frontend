@@ -549,6 +549,62 @@ code {
   white-space: pre;
 }
 
+/* ---- Profitability Calculator ---- */
+
+.calc-input-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.calc-input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  padding: 0.5rem 0.75rem;
+  width: 200px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.calc-input:focus {
+  border-color: var(--accent);
+}
+
+.calc-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Hide number input spinners */
+.calc-input::-webkit-outer-spin-button,
+.calc-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.calc-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.calc-input-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.calc-results {
+  margin-top: 0.5rem;
+}
+
+.calc-disclaimer {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 /* ---- Responsive ---- */
 
 @media (max-width: 768px) {

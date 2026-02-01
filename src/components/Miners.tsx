@@ -1,5 +1,6 @@
+import { useState, useEffect } from "react";
 import { usePolling } from "../hooks/usePolling";
-import { getLocalStratum } from "../api/p2pool";
+import { getLocalStratum, getNetworkStats } from "../api/p2pool";
 import { parseWorker } from "../api/types";
 import StatusBar from "./StatusBar";
 import {
@@ -9,11 +10,38 @@ import {
   formatEffort,
   formatPercent,
   formatTimeAgo,
+  formatXMR,
   shortenAddress,
 } from "../utils/formatters";
 
+const BLOCK_TIME = 120; // Monero target block time in seconds
+const BLOCKS_PER_DAY = 86400 / BLOCK_TIME;
+
+function estimateXMR(hashrate: number, networkDifficulty: number, blockReward: number): number {
+  if (hashrate <= 0 || networkDifficulty <= 0) return 0;
+  const networkHashrate = networkDifficulty / BLOCK_TIME;
+  return (hashrate / networkHashrate) * BLOCKS_PER_DAY * (blockReward / 1e12);
+}
+
 export default function Miners() {
   const stratum = usePolling(getLocalStratum);
+  const network = usePolling(getNetworkStats);
+
+  const [calcHashrate, setCalcHashrate] = useState("");
+  const [calcInitialized, setCalcInitialized] = useState(false);
+
+  // Set default calculator hashrate from current miner hashrate (once)
+  useEffect(() => {
+    if (!calcInitialized && stratum.data && stratum.data.hashrate_1h > 0) {
+      setCalcHashrate(String(stratum.data.hashrate_1h));
+      setCalcInitialized(true);
+    }
+  }, [stratum.data, calcInitialized]);
+
+  const refresh = () => {
+    stratum.refresh();
+    network.refresh();
+  };
 
   if (stratum.error) {
     return (
@@ -22,7 +50,7 @@ export default function Miners() {
           lastUpdated={null}
           loading={false}
           error={stratum.error}
-          onRefresh={stratum.refresh}
+          onRefresh={refresh}
         />
         <div className="card">
           <h2 className="card-title">Local Miner Statistics</h2>
@@ -40,13 +68,23 @@ export default function Miners() {
 
   const workers = stratum.data?.workers.map(parseWorker) ?? [];
 
+  const dailyXMR =
+    stratum.data && network.data
+      ? estimateXMR(stratum.data.hashrate_1h, network.data.difficulty, network.data.reward)
+      : 0;
+
+  // Calculator
+  const calcH = Number(calcHashrate) || 0;
+  const calcDaily =
+    network.data ? estimateXMR(calcH, network.data.difficulty, network.data.reward) : 0;
+
   return (
     <div className="page">
       <StatusBar
         lastUpdated={stratum.lastUpdated}
-        loading={stratum.loading}
-        error={stratum.error}
-        onRefresh={stratum.refresh}
+        loading={stratum.loading || network.loading}
+        error={stratum.error || network.error}
+        onRefresh={refresh}
       />
 
       {/* Miner Summary */}
@@ -70,6 +108,12 @@ export default function Miners() {
               <span className="stat-label">Hashrate (24h)</span>
               <span className="stat-value">
                 {formatHashrate(stratum.data.hashrate_24h)}
+              </span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Est. Daily Earnings</span>
+              <span className="stat-value highlight">
+                {formatXMR(dailyXMR * 1e12)} XMR
               </span>
             </div>
             <div className="stat">
@@ -126,6 +170,69 @@ export default function Miners() {
           )}
         </div>
       )}
+
+      {/* Profitability Calculator */}
+      <div className="card card-wide">
+        <h2 className="card-title">Profitability Calculator</h2>
+        <div className="calc-input-row">
+          <label className="stat-label" htmlFor="calc-hashrate">Hashrate (H/s)</label>
+          <input
+            id="calc-hashrate"
+            className="calc-input"
+            type="number"
+            min="0"
+            value={calcHashrate}
+            onChange={(e) => setCalcHashrate(e.target.value)}
+            placeholder="Enter hashrate in H/s"
+          />
+          <span className="calc-input-hint">{formatHashrate(calcH)}</span>
+        </div>
+        {network.data ? (
+          <div className="calc-results">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Period</th>
+                  <th>Est. XMR</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1 Day</td>
+                  <td className="text-right mono">
+                    <span className="highlight">{(calcDaily).toFixed(8)} XMR</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>1 Week</td>
+                  <td className="text-right mono">
+                    <span className="highlight">{(calcDaily * 7).toFixed(8)} XMR</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>1 Month</td>
+                  <td className="text-right mono">
+                    <span className="highlight">{(calcDaily * 30).toFixed(8)} XMR</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>1 Year</td>
+                  <td className="text-right mono">
+                    <span className="highlight">{(calcDaily * 365).toFixed(8)} XMR</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="text-muted calc-disclaimer">
+              Estimates based on current network difficulty ({formatNumber(network.data.difficulty)})
+              and block reward ({formatXMR(network.data.reward)} XMR). Actual results will vary
+              as difficulty and reward change over time.
+            </p>
+          </div>
+        ) : (
+          <div className="loading-placeholder">Loading network data...</div>
+        )}
+      </div>
 
       {/* Workers Table */}
       <div className="card card-wide">
